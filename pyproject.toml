@@ -1,0 +1,47 @@
+[project]
+name = "spkproof"
+version = "0.1.0"
+description = "Deterministic checks for speaker-verification studies: F0-tracking contamination and within-speaker embedding displacement."
+authors = [{name = "Panagiotis (Panos) Gkilis", email = "bedvibe@bedvibe.studio"}]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+keywords = ["speaker-verification", "speaker-embeddings", "voice-biometrics",
+            "f0", "pitch-tracking", "measurement-error", "ECAPA-TDNN", "WavLM"]
+classifiers = [
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Multimedia :: Sound/Audio :: Analysis",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+]
+
+# The core checks deliberately have NO dependencies. They read a CSV a study
+# already has and use exact tests implemented in stats.py, so spkproof installs
+# and runs anywhere - including on a machine that will never hold the audio.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff>=0.16"]
+
+[project.urls]
+Homepage = "https://ai.bedvibe.studio/speaker-drift/"
+Paper = "https://doi.org/10.5281/zenodo.21921958"
+
+[project.scripts]
+spkproof = "spkproof.cli:main"
+
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+extend-exclude = ["build", "dist", ".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "RUF013", "S110"]
+# Message strings are the tool's output and are asserted in tests; reflowing
+# them to satisfy a column limit risks changing behaviour to satisfy a ruler.
+ignore = ["E501"]

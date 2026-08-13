@@ -1,0 +1,234 @@
+speaker,corpus,condition,f0
+BF,B:breathiness female,clean,108.628
+BF,B:breathiness female,clean,132.0
+BF,B:breathiness female,clean,130.925
+BF,B:breathiness female,clean,128.926
+BF,B:breathiness female,clean,100.535
+BF,B:breathiness female,clean,171.433
+BF,B:breathiness female,clean,137.688
+BF,B:breathiness female,clean,149.321
+BF,B:breathiness female,clean,182.076
+BF,B:breathiness female,clean,158.893
+BF,B:breathiness female,breathiness,96.511
+BF,B:breathiness female,breathiness,97.071
+BF,B:breathiness female,breathiness,92.358
+BF,B:breathiness female,breathiness,84.044
+BF,B:breathiness female,breathiness,93.167
+BF,B:breathiness female,breathiness,90.923
+BF,B:breathiness female,breathiness,111.12
+BF,B:breathiness female,breathiness,109.006
+BF,B:breathiness female,breathiness,128.555
+BF,B:breathiness female,breathiness,120.863
+Panos,B:breathiness male,clean,108.379
+Panos,B:breathiness male,clean,90.593
+Panos,B:breathiness male,clean,130.119
+Panos,B:breathiness male,clean,121.66
+Panos,B:breathiness male,clean,133.585
+Panos,B:breathiness male,clean,134.053
+Panos,B:breathiness male,clean,124.236
+Panos,B:breathiness male,clean,136.579
+Panos,B:breathiness male,clean,137.855
+Panos,B:breathiness male,clean,151.141
+Panos,B:breathiness male,breathiness,114.138
+Panos,B:breathiness male,breathiness,124.554
+Panos,B:breathiness male,breathiness,128.75
+Panos,B:breathiness male,breathiness,90.19
+Panos,B:breathiness male,breathiness,139.376
+Panos,B:breathiness male,breathiness,141.743
+Panos,B:breathiness male,breathiness,149.853
+Panos,B:breathiness male,breathiness,123.905
+Panos,B:breathiness male,breathiness,132.861
+Panos,B:breathiness male,breathiness,151.748
+Panos,B:growl,clean,132.058
+Panos,B:growl,clean,138.913
+Panos,B:growl,clean,111.93
+Panos,B:growl,clean,127.017
+Panos,B:growl,clean,167.482
+Panos,B:growl,growl,513.702
+Panos,B:growl,growl,151.727
+Panos,B:growl,growl,121.586
+Panos,B:growl,growl,124.042
+Panos,B:growl,growl,113.726
+Panos,B:nasality,clean,85.017
+Panos,B:nasality,clean,84.76
+Panos,B:nasality,clean,87.085
+Panos,B:nasality,clean,78.66
+Panos,B:nasality,clean,87.652
+Panos,B:nasality,clean,112.216
+Panos,B:nasality,clean,97.2
+Panos,B:nasality,clean,98.723
+Panos,B:nasality,clean,86.334
+Panos,B:nasality,clean,89.261
+Panos,B:nasality,nasal,86.008
+Panos,B:nasality,nasal,82.382
+Panos,B:nasality,nasal,85.182
+Panos,B:nasality,nasal,86.716
+Panos,B:nasality,nasal,94.805
+Panos,B:nasality,nasal,102.95
+Panos,B:nasality,nasal,93.969
+Panos,B:nasality,nasal,103.078
+Panos,B:nasality,nasal,88.598
+Panos,B:nasality,nasal,94.665
+Panos,B:rasp,clean,98.4
+Panos,B:rasp,clean,100.883
+Panos,B:rasp,clean,99.049
+Panos,B:rasp,clean,108.722
+Panos,B:rasp,clean,116.704
+Panos,B:rasp,clean,98.661
+Panos,B:rasp,clean,103.905
+Panos,B:rasp,clean,111.321
+Panos,B:rasp,clean,114.09
+Panos,B:rasp,clean,98.368
+Panos,B:rasp,rasp,576.921
+Panos,B:rasp,rasp,654.804
+Panos,B:rasp,rasp,646.822
+Panos,B:rasp,rasp,510.391
+Panos,B:rasp,rasp,524.766
+Panos,B:rasp,rasp,608.797
+Panos,B:rasp,rasp,114.384
+Panos,B:rasp,rasp,468.306
+Panos,B:rasp,rasp,76.339
+Panos,B:rasp,rasp,534.547
+Panos,B:rasp,rasp,83.775
+Panos,B:rasp,rasp,487.686
+Panos,B:staccato-legato,staccato,105.841
+Panos,B:staccato-legato,staccato,114.03
+Panos,B:staccato-legato,staccato,124.744
+Panos,B:staccato-legato,staccato,120.192
+Panos,B:staccato-legato,staccato,128.859
+Panos,B:staccato-legato,staccato,133.826
+Panos,B:staccato-legato,staccato,112.74
+Panos,B:staccato-legato,staccato,120.284
+Panos,B:staccato-legato,staccato,137.981
+Panos,B:staccato-legato,staccato,114.089
+Panos,B:staccato-legato,staccato,113.597
+Panos,B:staccato-legato,staccato,129.078
+Panos,B:staccato-legato,staccato,115.304
+Panos,B:staccato-legato,staccato,136.084
+Panos,B:staccato-legato,staccato,136.215
+Panos,B:staccato-legato,staccato,134.776
+Panos,B:staccato-legato,legato,99.922
+Panos,B:staccato-legato,legato,97.617
+Panos,B:staccato-legato,legato,98.688
+Panos,B:staccato-legato,legato,103.921
+Panos,B:staccato-legato,legato,108.936
+Panos,B:staccato-legato,legato,97.694
+Panos,B:staccato-legato,legato,111.353
+Panos,B:staccato-legato,legato,124.191
+Panos,B:staccato-legato,legato,132.872
+Panos,B:staccato-legato,legato,96.855
+Panos,B:staccato-legato,legato,127.988
+Panos,B:staccato-legato,legato,101.111
+Panos,B:staccato-legato,legato,153.576
+Panos,B:staccato-legato,legato,167.364
+Panos,B:staccato-legato,legato,167.577
+Panos,B:staccato-legato,legato,105.035
+Panos,C,clean,125.562
+Panos,C,clean,160.147
+Panos,C,clean,204.837
+Panos,C,clean,71.79
+Panos,C,clean,171.291
+Panos,C,clean,169.495
+Panos,C,clean,198.527
+Panos,C,clean,171.8
+Panos,C,clean,239.275
+Panos,C,clean,175.934
+Panos,C,clean,189.767
+Panos,C,low,114.891
+Panos,C,low,102.48
+Panos,C,low,109.98
+Panos,C,low,91.219
+Panos,C,low,100.728
+Panos,C,low,97.22
+Panos,C,low,108.068
+Panos,C,low,98.042
+Panos,C,very_low,84.297
+Panos,C,very_low,80.556
+Panos,C,very_low,83.174
+Panos,C,very_low,76.914
+Panos,C,very_low,78.938
+Panos,C,very_low,82.331
+Panos,C,very_low,82.085
+Panos,C,very_low,88.366
+Panos,C,high,188.876
+Panos,C,high,199.532
+Panos,C,high,232.596
+Panos,C,high,216.64
+Panos,C,high,225.526
+Panos,C,high,252.377
+Panos,C,high,238.257
+Panos,C,high,250.318
+Panos,C,very_high,354.202
+Panos,C,very_high,352.148
+Panos,C,very_high,345.729
+Panos,C,very_high,311.659
+Panos,C,very_high,336.087
+Panos,C,very_high,347.68
+Panos,C,very_high,344.491
+Panos,C,very_high,351.288
+Panos,C,very_high,337.097
+Panos,C,very_high,325.647
+Stelina,C,clean,172.568
+Stelina,C,clean,176.638
+Stelina,C,clean,170.717
+Stelina,C,clean,176.468
+Stelina,C,clean,172.126
+Stelina,C,clean,171.62
+Stelina,C,clean,171.41
+Stelina,C,clean,170.919
+Stelina,C,low,144.792
+Stelina,C,low,147.09
+Stelina,C,low,144.8
+Stelina,C,low,145.464
+Stelina,C,low,143.187
+Stelina,C,low,148.144
+Stelina,C,low,151.15
+Stelina,C,low,148.565
+Stelina,C,high,258.204
+Stelina,C,high,254.467
+Stelina,C,high,246.202
+Stelina,C,high,239.357
+Stelina,C,high,237.148
+Stelina,C,high,238.353
+Stelina,C,high,238.35
+Stelina,C,high,238.596
+Stelina,C,breathy,161.839
+Stelina,C,breathy,156.377
+Stelina,C,breathy,160.101
+Stelina,C,breathy,157.941
+Stelina,C,breathy,166.816
+Stelina,C,breathy,161.974
+Stelina,C,breathy,161.171
+Stelina,C,breathy,167.453
+Vagelis,C,clean,103.854
+Vagelis,C,clean,102.743
+Vagelis,C,clean,100.33
+Vagelis,C,clean,103.765
+Vagelis,C,clean,97.782
+Vagelis,C,clean,99.062
+Vagelis,C,clean,99.185
+Vagelis,C,clean,100.133
+Vagelis,C,low,96.651
+Vagelis,C,low,95.258
+Vagelis,C,low,95.869
+Vagelis,C,low,95.844
+Vagelis,C,low,96.201
+Vagelis,C,low,96.247
+Vagelis,C,low,97.834
+Vagelis,C,low,96.383
+Vagelis,C,high,232.238
+Vagelis,C,high,181.897
+Vagelis,C,high,159.863
+Vagelis,C,high,161.22
+Vagelis,C,high,148.746
+Vagelis,C,high,148.283
+Vagelis,C,high,150.269
+Vagelis,C,high,143.973
+Vagelis,C,breathy,108.522
+Vagelis,C,breathy,106.726
+Vagelis,C,breathy,105.673
+Vagelis,C,breathy,106.22
+Vagelis,C,breathy,107.848
+Vagelis,C,breathy,106.948
+Vagelis,C,breathy,107.32
+Vagelis,C,breathy,106.315
