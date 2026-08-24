@@ -22,7 +22,10 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff>=0.16"]
+# The whole gate has to be installable with the project rather than assumed
+# present on the machine that runs it. pyyaml is only used by `scripts/ci.py
+# run`, which reads .github/workflows/ci.yml to replay CI locally.
+dev = ["pytest", "ruff>=0.16", "mypy>=2.3", "pyyaml>=6", "build>=1.2", "twine>=6"]
 
 [project.urls]
 Homepage = "https://ai.bedvibe.studio/speaker-drift/"
@@ -45,3 +48,23 @@ select = ["E", "F", "I", "B", "RUF013", "S110"]
 # Message strings are the tool's output and are asserted in tests; reflowing
 # them to satisfy a column limit risks changing behaviour to satisfy a ruler.
 ignore = ["E501"]
+
+# This is a src-layout package, and before CI existed a fresh clone could not
+# run its own tests: `pytest` collected `tests/test_f0.py`, which imports
+# `spkproof`, and failed with ModuleNotFoundError unless the package was
+# already installed or PYTHONPATH was set by hand. Nothing in the repository
+# said so. `pythonpath` fixes the clone; CI installs the package as well, so
+# both paths are exercised.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+# spkproof is the newest and smallest of the three proof libraries - 426 lines -
+# and `mypy --strict` reported six errors on it against 159 for trainproof. At
+# six, strict is affordable today and cheap to keep; it is turned on here and
+# deliberately not turned on in the older siblings. Strictness chosen by
+# measurement, not by consistency.
+[tool.mypy]
+python_version = "3.10"
+files = ["src/spkproof"]
+strict = true

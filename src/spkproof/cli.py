@@ -11,6 +11,7 @@ import argparse
 import csv
 import json
 import sys
+from collections.abc import Iterable
 from pathlib import Path
 
 from . import __version__
@@ -75,7 +76,7 @@ def _load(path: Path, group_col: str | None = None) -> tuple[list[Utterance], di
     return utts, cols
 
 
-def lower_map(header) -> dict[str, str]:
+def lower_map(header: Iterable[str]) -> dict[str, str]:
     return {h.lower().strip(): h for h in header}
 
 
@@ -158,7 +159,8 @@ def main(argv: list[str] | None = None) -> int:
     c.set_defaults(func=cmd_check_f0)
 
     args = p.parse_args(argv)
-    return args.func(args)
+    exit_code: int = args.func(args)
+    return exit_code
 
 
 if __name__ == "__main__":

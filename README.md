@@ -3,7 +3,7 @@
 Deterministic checks for speaker-verification and speaker-embedding studies.
 
 ```bash
-pip install spkproof
+pip install git+https://github.com/Mormolykos/spkproof.git
 spkproof check-f0 my_utterances.csv
 ```
 
@@ -135,6 +135,40 @@ impossible values, 32.12 semitones maximum, confinement to rough phonation. If a
 change to this library alters what it reports on that table, the build fails.
 
 Full write-up: <https://ai.bedvibe.studio/speaker-drift/>
+
+## Developing, and how a release is cut
+
+```bash
+git clone https://github.com/Mormolykos/spkproof.git && cd spkproof
+pytest -q                     # 16 tests, no install needed
+pip install -e ".[dev]"       # ruff, mypy, pytest, build, twine, pyyaml
+```
+
+**Run the whole CI workflow locally before pushing:**
+
+```bash
+python scripts/ci.py run                       # every job, ~58s
+python scripts/ci.py run --job test --python 3.13   # one cell of the matrix
+python scripts/ci.py run --list                # what it would do, without doing it
+```
+
+It reads `.github/workflows/ci.yml` and executes the `run:` steps it finds
+there, one throwaway virtual environment per job — the same isolation GitHub
+gives each job. Steps it cannot reproduce (`actions/checkout` and friends) are
+printed as `NOT-LOCAL` rather than skipped quietly. `uv` is used when present,
+so `--python 3.13` means 3.13 even on a machine that has 3.10.
+
+Individual gates: `ci.py attribution`, `version`, `pypi`, `contract`,
+`noskips`, `wheelcheck`, `artifact`. They use spkproof's own exit-code
+convention — `0` pass, `1` fail, `2` could not judge — so a network blip while
+checking PyPI is a `2`, never a `1`.
+
+`mypy --strict` passes on this package and is enforced. That is a measurement
+rather than a house style: strict reported 6 errors here against 159 on
+`trainproof`, so it is affordable here and not there. See
+[docs/adr/001](docs/adr/001-ci-and-first-release.md), which also covers the
+release procedure, the pending-publisher setup for the first PyPI upload, and
+what rollback means when PyPI will not let a version be replaced.
 
 ## Related
 

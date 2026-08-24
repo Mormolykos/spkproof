@@ -43,4 +43,4 @@ def binom_sign_test(successes: int, n: int) -> float:
         return 1.0
     k = min(successes, n - successes)
     tail = sum(comb(n, i) for i in range(k + 1)) / (2 ** n)
-    return min(2.0 * tail, 1.0)
+    return float(min(2.0 * tail, 1.0))

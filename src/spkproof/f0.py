@@ -38,7 +38,9 @@ class Finding:
     rule: str
     severity: str          # "error" | "warning" | "info"
     message: str
-    evidence: dict = field(default_factory=dict)
+    # The values are whatever a rule cites: counts, semitone deltas, speaker
+    # ids, p-values. `object` says that honestly; `Any` would say nothing.
+    evidence: dict[str, object] = field(default_factory=dict)
 
     def __str__(self) -> str:
         return f"[{self.rule}] {self.severity.upper()}: {self.message}"
@@ -86,7 +88,7 @@ def check_f0(
     utterances: list[Utterance],
     ceiling_st: float = DEFAULT_CEILING_ST,
     reference: str = "clean",
-) -> tuple[list[Finding], dict]:
+) -> tuple[list[Finding], dict[str, object]]:
     """Run every F0 contamination check.
 
     Returns (findings, summary). An empty findings list means no contamination
@@ -94,7 +96,7 @@ def check_f0(
     """
     usable = [u for u in utterances if u.valid]
     findings: list[Finding] = []
-    summary: dict = {
+    summary: dict[str, object] = {
         "n_total": len(utterances),
         "n_usable": len(usable),
         "n_dropped": len(utterances) - len(usable),
