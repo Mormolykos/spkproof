@@ -3,7 +3,7 @@
 Deterministic checks for speaker-verification and speaker-embedding studies.
 
 ```bash
-pip install git+https://github.com/Mormolykos/spkproof.git
+pip install spkproof
 spkproof check-f0 my_utterances.csv
 ```
 
