@@ -26,15 +26,12 @@ Standard library only, except `ci.py run`, which needs PyYAML (a `dev` extra).
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import re
 import shutil
 import subprocess
 import sys
 import time
-import urllib.error
-import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
