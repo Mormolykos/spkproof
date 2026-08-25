@@ -1,0 +1,79 @@
+name: Release
+
+# A tag is the only trigger. There is no manual "publish" button and no branch
+# that publishes on merge, so the released version is always a named point in
+# history that someone can check out.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # The same file a pull request runs -- not a copy of it and not a subset.
+  # A release that could pass a weaker gate than a pull request is the fault
+  # this reuse exists to prevent. ci.yml already builds the distributions,
+  # verifies their filenames carry the project version, renders the metadata
+  # and installs the wheel into a clean interpreter, so there is nothing left
+  # for this file to check about the artifact.
+  gate:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: publish to PyPI
+    needs: gate
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/spkproof
+    permissions:
+      # Trusted publishing. PyPI mints a short-lived token from this OIDC
+      # identity, so there is no long-lived API token in the repository, in an
+      # organisation secret, or on the maintainer's laptop. Nothing to leak and
+      # nothing to rotate. `contents` stays read: creating the GitHub release is
+      # a separate job with a separate permission.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      # `ci.py version` checks pyproject against the package's __version__.
+      # This checks both against the tag, which is the one pairing no local
+      # gate can see -- a correct package under a wrong name in history.
+      - name: The tag matches the version in the source
+        run: python scripts/ci.py version --expect "${{ github.ref_name }}"
+
+      # Publish the artifact the gate verified. Rebuilding here would upload
+      # bytes nothing tested: a different wheel, from the same source, built by
+      # a job holding an OIDC token.
+      - uses: actions/download-artifact@v7
+        with:
+          name: distributions
+          path: dist
+
+      # Pinned to a commit SHA, not a tag. This is the one action in the
+      # repository that holds a credential, and a moving tag on it is a moving
+      # credential holder. Everything else is pinned to a major version, where
+      # readability is worth more than the marginal risk.
+      # v1.14.2
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
+
+  github-release:
+    name: GitHub release
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          name: distributions
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true

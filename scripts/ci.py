@@ -194,18 +194,19 @@ def cmd_version(args: argparse.Namespace) -> int:
 
 
 # --------------------------------------------------------------------------
-# NO PyPI availability check here, deliberately.
+# NO PyPI availability check here, and now for a different reason.
 #
 # The sibling libraries carry a `pypi` subcommand that refuses a version already
-# published, because PyPI never allows a version to be replaced. spkproof is
-# research tooling installed from git and is not published, so that check has
-# nothing to guard: it would ask whether a release that will never happen is
-# blocked by a version that will never exist.
+# published, because PyPI never allows a version to be replaced. It was removed
+# here on 2026-08-24 when spkproof was not published at all, and the release path
+# came back on 2026-08-25 without it, on purpose.
 #
-# It was left in place when the release workflow was removed on 2026-08-24, and
-# the local gate caught it as a guard no workflow runs. A dead PyPI checker in a
-# repository that does not publish is worse than no checker: the next reader
-# reasonably concludes that this project publishes.
+# PyPI rejects a duplicate version by itself. The subcommand buys one thing over
+# that: it fails before the build rather than after it, in a message that names
+# the procedure instead of a URL. That is worth having in a library releasing
+# every few days, which is why the siblings keep it. spkproof is 0.1.0 with no
+# second version planned, and a guard nobody exercises is a guard nobody
+# maintains. If releases here ever become routine, copy trainproof's.
 # --------------------------------------------------------------------------
 
 

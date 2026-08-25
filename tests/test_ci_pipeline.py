@@ -5,19 +5,20 @@ matrix has to agree with `requires-python` in `pyproject.toml`. Nothing in Pytho
 or in GitHub Actions checks either link - a renamed subcommand is a green pull
 request and a red tag, discovered at the worst possible moment.
 
-THIS PACKAGE HAS NO RELEASE WORKFLOW, ON PURPOSE
-------------------------------------------------
-spkproof is research tooling distributed from git - `pip install
-git+https://github.com/Mormolykos/spkproof.git` - and is deliberately not on
-PyPI. Its sibling libraries publish; this one does not, and the absence of
-`release.yml` is the decision rather than a gap.
+THIS PACKAGE PUBLISHES, AND IT DID NOT ALWAYS
+---------------------------------------------
+spkproof was distributed from git only, and `release.yml` was removed on
+2026-08-24 to make the repository match that decision. The decision was reversed
+on 2026-08-25: the reason for it was that the tool has a small audience, which is
+a reason to expect few downloads and not a reason to be uninstallable. `pip
+install spkproof` is now the same sentence as for its three siblings.
 
-That absence is asserted below rather than assumed. These tests were copied from
-a sibling that does publish, and when `release.yml` was removed on 2026-08-24
-they kept reading it: every matrix leg died on `FileNotFoundError` in the first
-run that reached a GitHub runner. A test suite that describes a file the
-repository has decided not to have will fail forever and tell you nothing about
-your code.
+The history is kept here because it cost a full red pipeline. When the file was
+removed, these tests - copied from a sibling that does publish - kept reading it,
+and every matrix leg died on `FileNotFoundError` in the first run that reached a
+GitHub runner. A test suite that describes a file the repository does not have
+will fail forever and tell you nothing about your code. The assertions below
+describe the release path that exists rather than assuming it.
 """
 from __future__ import annotations
 
@@ -61,39 +62,47 @@ def test_the_workflow_is_valid_yaml_with_jobs():
     assert _workflow("ci.yml")["jobs"], "ci.yml declares no jobs"
 
 
-def test_there_is_no_release_workflow_and_that_is_deliberate():
-    """The decision, as a test.
+def test_the_release_reuses_the_gate_rather_than_repeating_it():
+    """A release must not be able to pass a weaker gate than a pull request.
 
-    spkproof is installed from git, not from PyPI. Its 404 on PyPI is correct.
-    Anyone adding a release path here has to delete this test first, which is
-    exactly the moment to notice they are changing a distribution decision
-    rather than adding a convenience."""
-    present = sorted(p.name for p in WORKFLOWS.glob("*.yml"))
-    assert present == ["ci.yml"], (
-        f"expected only ci.yml, found {present} - if a release path is being "
-        f"added, that is a distribution decision, not a workflow change"
+    The failure this prevents is quiet: someone tightens ci.yml, the tag path
+    keeps its own older copy of the steps, and the version that reaches users is
+    the one that skipped the new check. `uses:` makes that impossible - there is
+    one definition of the gate and the release calls it.
+    """
+    gate = _workflow("release.yml")["jobs"]["gate"]
+    assert gate.get("uses") == "./.github/workflows/ci.yml", (
+        "release.yml no longer calls ci.yml; if the release steps have been "
+        "copied inline, the two gates can drift apart silently"
+    )
+    assert "workflow_call" in _workflow("ci.yml")[True], (
+        "ci.yml stopped accepting workflow_call, so release.yml cannot run it"
     )
 
 
-def test_nothing_in_the_pipeline_publishes():
-    """A publishing step that crept back in, caught here rather than by a
-    surprised maintainer watching a tag upload something.
+def test_only_a_tag_can_publish():
+    """No branch and no button. The released version is always a named point in
+    history that someone else can check out and rebuild."""
+    triggers = _workflow("release.yml")[True]
+    assert set(triggers) == {"push"}, f"release.yml triggers on {sorted(triggers)}"
+    assert triggers["push"] == {"tags": ["v*"]}, (
+        f"release.yml publishes on {triggers['push']}, not on a tag alone"
+    )
 
-    Deliberately narrow. `twine check` validates that the metadata renders and
-    publishes nothing; `actions/upload-artifact` moves a file between jobs on
-    GitHub. Forbidding the words `twine` or `upload` outright would ban two
-    legitimate tools and teach whoever hits it to weaken the test. What is
-    forbidden is the act of publishing.
-    """
-    haystack = "\n".join(
-        p.read_text(encoding="utf-8") for p in
-        [*WORKFLOWS.glob("*.yml"), CI_PY] if p.exists()
-    ).lower()
-    for token in ("gh-action-pypi-publish", "twine upload", "twine_password",
-                  "ci.py pypi", "pypi.org/legacy", "repository-url"):
-        assert token not in haystack, (
-            f"{token!r} appears in the pipeline; spkproof is installed from git "
-            f"and does not publish"
+
+def test_the_release_publishes_what_the_gate_built():
+    """Rebuilding at publish time would upload bytes nothing tested: a different
+    wheel, from the same source, built by the one job holding a credential. The
+    publish job downloads the artifact instead, and never runs a build."""
+    publish = _workflow("release.yml")["jobs"]["publish"]
+    steps = publish["steps"]
+    assert any(s.get("uses", "").startswith("actions/download-artifact") for s in steps), (
+        "the publish job does not download the gate's artifact"
+    )
+    for step in steps:
+        assert "python -m build" not in str(step.get("run", "")), (
+            "the publish job builds its own distributions; it must publish the "
+            "ones ci.yml built and verified"
         )
 
 
@@ -103,7 +112,7 @@ def test_nothing_in_the_pipeline_publishes():
 def test_every_ci_py_subcommand_the_workflows_call_actually_exists():
     known = _subcommands()
     called = set()
-    for name in ("ci.yml",):
+    for name in ("ci.yml", "release.yml"):
         for _job, script in _run_steps(_workflow(name)):
             called.update(re.findall(r"scripts/ci\.py\s+([a-z-]+)", script))
     assert called, "no workflow step calls scripts/ci.py - did the gate move?"
@@ -124,7 +133,7 @@ def test_the_gate_subcommands_are_all_wired_into_ci():
     assert "return cmd_smoke(args)" in source, "wheelcheck no longer runs the smoke check"
 
     called = set()
-    for name in ("ci.yml",):
+    for name in ("ci.yml", "release.yml"):
         for _job, script in _run_steps(_workflow(name)):
             called.update(re.findall(r"scripts/ci\.py\s+([a-z-]+)", script))
     orphaned = _subcommands() - called - {"run", "smoke"}
@@ -169,26 +178,43 @@ def test_the_matrix_does_not_stop_at_the_first_red_cell():
 # ------------------------------------------------------------- the supply chain
 
 
-def test_no_workflow_here_holds_a_credential():
-    """The supply-chain question, answered for a repository that publishes
-    nothing.
+# Exactly two jobs may hold a write-scoped token, and each holds a different
+# one: `publish` takes id-token to prove its identity to PyPI, `github-release`
+# takes contents to create the release page. Splitting them means neither can do
+# the other's job, and any third grant is a mistake this test names.
+_MAY_WRITE = {"publish": {"id-token"}, "github-release": {"contents"}}
 
-    In the sibling libraries this file asserts that the PyPI publishing action
-    is pinned to a full commit SHA, because that action runs with
-    `id-token: write` and a moving tag there is a moving credential holder.
-    spkproof has no such action and no such job, so the assertion here is the
-    stronger one: nothing in this pipeline requests a write-scoped token at all.
-    """
+
+def test_no_job_holds_a_credential_it_does_not_need():
     for path in WORKFLOWS.glob("*.yml"):
         workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
         for job_name, job in workflow["jobs"].items():
             permissions = job.get("permissions", {})
-            if isinstance(permissions, dict):
-                granted = {k for k, v in permissions.items() if v == "write"}
-                assert not granted, (
-                    f"{path.name}:{job_name} requests write on {sorted(granted)}; "
-                    f"nothing here needs to write anything"
-                )
+            if not isinstance(permissions, dict):
+                continue
+            granted = {k for k, v in permissions.items() if v == "write"}
+            allowed = _MAY_WRITE.get(job_name, set())
+            assert granted <= allowed, (
+                f"{path.name}:{job_name} requests write on "
+                f"{sorted(granted - allowed)}, which it has no use for"
+            )
+
+
+def test_the_publishing_action_is_pinned_to_a_commit():
+    """The one action in this repository that holds a credential.
+
+    Everything else is pinned to a major version, where readability is worth
+    more than the marginal risk. This one runs with `id-token: write`, so a
+    moving tag on it is a moving credential holder: whoever controls that tag
+    controls what uploads to PyPI under this project's name.
+    """
+    steps = _workflow("release.yml")["jobs"]["publish"]["steps"]
+    pins = [s["uses"] for s in steps
+            if s.get("uses", "").startswith("pypa/gh-action-pypi-publish")]
+    assert len(pins) == 1, f"expected one PyPI publish step, found {len(pins)}"
+    assert re.fullmatch(r"pypa/gh-action-pypi-publish@[0-9a-f]{40}", pins[0]), (
+        f"{pins[0]} is pinned to a moving reference, not a commit SHA"
+    )
 
 
 # ------------------------------------------------------- the attribution scanner
