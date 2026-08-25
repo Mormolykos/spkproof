@@ -1,12 +1,23 @@
-"""The CI pipeline is a contract between three files that cannot see each other.
+"""The CI pipeline is a contract between files that cannot see each other.
 
-`.github/workflows/ci.yml` calls subcommands of `scripts/ci.py`; `release.yml`
-reuses `ci.yml`; the test matrix has to agree with `requires-python` in
-`pyproject.toml`. Nothing in Python or in GitHub Actions checks any of those
-links - a renamed subcommand is a green pull request and a red tag, discovered
-at the worst possible moment.
+`.github/workflows/ci.yml` calls subcommands of `scripts/ci.py`, and the test
+matrix has to agree with `requires-python` in `pyproject.toml`. Nothing in Python
+or in GitHub Actions checks either link - a renamed subcommand is a green pull
+request and a red tag, discovered at the worst possible moment.
 
-These tests are that check.
+THIS PACKAGE HAS NO RELEASE WORKFLOW, ON PURPOSE
+------------------------------------------------
+spkproof is research tooling distributed from git - `pip install
+git+https://github.com/Mormolykos/spkproof.git` - and is deliberately not on
+PyPI. Its sibling libraries publish; this one does not, and the absence of
+`release.yml` is the decision rather than a gap.
+
+That absence is asserted below rather than assumed. These tests were copied from
+a sibling that does publish, and when `release.yml` was removed on 2026-08-24
+they kept reading it: every matrix leg died on `FileNotFoundError` in the first
+run that reached a GitHub runner. A test suite that describes a file the
+repository has decided not to have will fail forever and tell you nothing about
+your code.
 """
 from __future__ import annotations
 
@@ -46,32 +57,44 @@ def _subcommands() -> set[str]:
 # ---------------------------------------------------------------- the workflows
 
 
-def test_both_workflows_are_valid_yaml_with_jobs():
-    for name in ("ci.yml", "release.yml"):
-        workflow = _workflow(name)
-        assert workflow["jobs"], f"{name} declares no jobs"
+def test_the_workflow_is_valid_yaml_with_jobs():
+    assert _workflow("ci.yml")["jobs"], "ci.yml declares no jobs"
 
 
-def test_ci_is_callable_so_release_can_reuse_it():
-    # `on: workflow_call` is what lets release.yml run the same gate instead of
-    # a copy of it. Remove it and the release either duplicates the gate or
-    # skips it.
-    triggers = _workflow("ci.yml")[True]  # PyYAML parses the key `on:` as True
-    assert "workflow_call" in triggers
+def test_there_is_no_release_workflow_and_that_is_deliberate():
+    """The decision, as a test.
+
+    spkproof is installed from git, not from PyPI. Its 404 on PyPI is correct.
+    Anyone adding a release path here has to delete this test first, which is
+    exactly the moment to notice they are changing a distribution decision
+    rather than adding a convenience."""
+    present = sorted(p.name for p in WORKFLOWS.glob("*.yml"))
+    assert present == ["ci.yml"], (
+        f"expected only ci.yml, found {present} - if a release path is being "
+        f"added, that is a distribution decision, not a workflow change"
+    )
 
 
-def test_release_runs_the_gate_rather_than_repeating_it():
-    jobs = _workflow("release.yml")["jobs"]
-    reused = [job.get("uses") for job in jobs.values() if job.get("uses")]
-    assert "./.github/workflows/ci.yml" in reused, "the release does not run the CI gate"
-    publish = jobs["publish"]
-    assert "gate" in publish["needs"], "publish does not wait for the gate"
+def test_nothing_in_the_pipeline_publishes():
+    """A publishing step that crept back in, caught here rather than by a
+    surprised maintainer watching a tag upload something.
 
-
-def test_release_is_triggered_only_by_a_tag():
-    triggers = _workflow("release.yml")[True]
-    assert set(triggers) == {"push"}
-    assert "tags" in triggers["push"] and "branches" not in triggers["push"]
+    Deliberately narrow. `twine check` validates that the metadata renders and
+    publishes nothing; `actions/upload-artifact` moves a file between jobs on
+    GitHub. Forbidding the words `twine` or `upload` outright would ban two
+    legitimate tools and teach whoever hits it to weaken the test. What is
+    forbidden is the act of publishing.
+    """
+    haystack = "\n".join(
+        p.read_text(encoding="utf-8") for p in
+        [*WORKFLOWS.glob("*.yml"), CI_PY] if p.exists()
+    ).lower()
+    for token in ("gh-action-pypi-publish", "twine upload", "twine_password",
+                  "ci.py pypi", "pypi.org/legacy", "repository-url"):
+        assert token not in haystack, (
+            f"{token!r} appears in the pipeline; spkproof is installed from git "
+            f"and does not publish"
+        )
 
 
 # ------------------------------------------------------- the cross-file contract
@@ -80,7 +103,7 @@ def test_release_is_triggered_only_by_a_tag():
 def test_every_ci_py_subcommand_the_workflows_call_actually_exists():
     known = _subcommands()
     called = set()
-    for name in ("ci.yml", "release.yml"):
+    for name in ("ci.yml",):
         for _job, script in _run_steps(_workflow(name)):
             called.update(re.findall(r"scripts/ci\.py\s+([a-z-]+)", script))
     assert called, "no workflow step calls scripts/ci.py - did the gate move?"
@@ -101,7 +124,7 @@ def test_the_gate_subcommands_are_all_wired_into_ci():
     assert "return cmd_smoke(args)" in source, "wheelcheck no longer runs the smoke check"
 
     called = set()
-    for name in ("ci.yml", "release.yml"):
+    for name in ("ci.yml",):
         for _job, script in _run_steps(_workflow(name)):
             called.update(re.findall(r"scripts/ci\.py\s+([a-z-]+)", script))
     orphaned = _subcommands() - called - {"run", "smoke"}
@@ -146,35 +169,26 @@ def test_the_matrix_does_not_stop_at_the_first_red_cell():
 # ------------------------------------------------------------- the supply chain
 
 
-def test_the_publishing_action_is_pinned_to_a_commit():
-    """One action in this repository holds a credential.
+def test_no_workflow_here_holds_a_credential():
+    """The supply-chain question, answered for a repository that publishes
+    nothing.
 
-    `pypa/gh-action-pypi-publish` runs with `id-token: write`. A moving tag on
-    it is a moving credential holder: whoever can move that tag can mint a PyPI
-    token for this project. Everything else is pinned to a major version, where
-    readability is worth more than the marginal risk.
+    In the sibling libraries this file asserts that the PyPI publishing action
+    is pinned to a full commit SHA, because that action runs with
+    `id-token: write` and a moving tag there is a moving credential holder.
+    spkproof has no such action and no such job, so the assertion here is the
+    stronger one: nothing in this pipeline requests a write-scoped token at all.
     """
-    source = (WORKFLOWS / "release.yml").read_text(encoding="utf-8")
-    match = re.search(r"pypa/gh-action-pypi-publish@([0-9a-f]{40})\b", source)
-    assert match, "the PyPI publishing action is not pinned to a full commit SHA"
-
-
-def test_publishing_uses_oidc_and_carries_no_token():
-    workflow = _workflow("release.yml")
-    publish = workflow["jobs"]["publish"]
-    assert publish["permissions"]["id-token"] == "write", "trusted publishing needs an OIDC token"
-    assert "contents" not in publish["permissions"], "the publish job must not hold write access to the repo"
-    source = (WORKFLOWS / "release.yml").read_text(encoding="utf-8")
-    assert "TWINE_PASSWORD" not in source and "pypi-AgEIcHlwaS5vcmc" not in source
-    assert "password:" not in source, "a password field means a long-lived API token"
-
-
-def test_the_release_publishes_the_artifact_the_gate_verified():
-    """Rebuilding in the publish job would upload bytes nothing tested."""
-    jobs = _workflow("release.yml")["jobs"]
-    steps = jobs["publish"]["steps"]
-    assert any("download-artifact" in str(step.get("uses", "")) for step in steps)
-    assert not any("python -m build" in str(step.get("run", "")) for step in steps)
+    for path in WORKFLOWS.glob("*.yml"):
+        workflow = yaml.safe_load(path.read_text(encoding="utf-8"))
+        for job_name, job in workflow["jobs"].items():
+            permissions = job.get("permissions", {})
+            if isinstance(permissions, dict):
+                granted = {k for k, v in permissions.items() if v == "write"}
+                assert not granted, (
+                    f"{path.name}:{job_name} requests write on {sorted(granted)}; "
+                    f"nothing here needs to write anything"
+                )
 
 
 # ------------------------------------------------------- the attribution scanner

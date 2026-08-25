@@ -165,16 +165,15 @@ def test_prose_naming_a_tool_is_not_an_authorship_claim(fake_git_repo):
 # ------------------------------------------------- cannot judge is not a fail
 
 
-def test_an_unreachable_pypi_is_cannot_judge_and_never_a_failure(fake_repo, monkeypatch):
-    """The rule this whole gate borrows from the tool it guards.
-
-    A network failure means the check did not run. Reporting that as a failed
-    check blocks a release for a reason that has nothing to do with the code -
-    and teaches whoever is on the other end to re-run until it goes green,
-    which is how a gate stops being read.
-    """
-    monkeypatch.setattr(ci, "_PYPI", "http://127.0.0.1:9/{name}/json")
-    assert ci.cmd_pypi(_args(version=None, timeout=1.0)) == ci.UNJUDGED
+# The unreachable-PyPI case lived here until 2026-08-24. It exercised
+# `cmd_pypi`, which was removed with the release path: spkproof installs from
+# git and does not publish, so a "is this version already on PyPI" gate guards a
+# release that will never happen.
+#
+# The rule it protected — a check that could not run is UNJUDGED, never FAIL,
+# because reporting it as a failure blocks on something unrelated to the code and
+# teaches whoever is on the other end to re-run until green — is still under test
+# immediately below, against a check that can genuinely be unrunnable here.
 
 
 def test_a_missing_git_checkout_is_cannot_judge(tmp_path, monkeypatch):

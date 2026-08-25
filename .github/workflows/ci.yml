@@ -135,6 +135,12 @@ jobs:
         run: python scripts/ci.py version
       - name: Build sdist and wheel
         run: python -m build
+      # The filenames carry the version. A build that quietly produced a stale
+      # one would still pass `twine check` and still install, so the names are
+      # checked against the project version before anything downstream trusts
+      # them.
+      - name: Distributions match the project version
+        run: python scripts/ci.py artifact
       - name: Metadata is renderable
         run: twine check dist/*
       # Everything above tests the source tree; this installs the artifact a

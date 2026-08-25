@@ -197,37 +197,19 @@ def cmd_version(args: argparse.Namespace) -> int:
 
 
 # --------------------------------------------------------------------------
-# PyPI availability
+# NO PyPI availability check here, deliberately.
+#
+# The sibling libraries carry a `pypi` subcommand that refuses a version already
+# published, because PyPI never allows a version to be replaced. spkproof is
+# research tooling installed from git and is not published, so that check has
+# nothing to guard: it would ask whether a release that will never happen is
+# blocked by a version that will never exist.
+#
+# It was left in place when the release workflow was removed on 2026-08-24, and
+# the local gate caught it as a guard no workflow runs. A dead PyPI checker in a
+# repository that does not publish is worse than no checker: the next reader
+# reasonably concludes that this project publishes.
 # --------------------------------------------------------------------------
-
-_PYPI = "https://pypi.org/pypi/{name}/json"
-
-
-def cmd_pypi(args: argparse.Namespace) -> int:
-    version = args.version or project_version()
-    try:
-        with urllib.request.urlopen(_PYPI.format(name=PROJECT), timeout=args.timeout) as response:
-            data = json.load(response)
-    except urllib.error.HTTPError as exc:
-        if exc.code == 404:
-            _say("OK", f"{PROJECT} is not on PyPI yet - {version} would be the first release")
-            return OK
-        _say("SKIP", f"PyPI returned HTTP {exc.code} - cannot judge availability")
-        return UNJUDGED
-    except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        _say("SKIP", f"PyPI unreachable ({exc}) - cannot judge availability")
-        return UNJUDGED
-
-    released = sorted(data.get("releases", {}))
-    if version in released:
-        _say("FAIL", f"{PROJECT} {version} is ALREADY on PyPI - this release cannot be uploaded")
-        print("       PyPI never allows a version to be replaced, not even after a delete.")
-        print("       The procedure is yank + patch release; see docs/adr/001 'Rollback'.")
-        print(f"       Latest on PyPI: {data['info']['version']} ({len(released)} releases)")
-        return FAIL
-
-    _say("OK", f"{PROJECT} {version} is free on PyPI (latest published: {data['info']['version']})")
-    return OK
 
 
 # --------------------------------------------------------------------------
@@ -577,9 +559,6 @@ def main(argv: list[str] | None = None) -> int:
     version = sub.add_parser("version", help="pyproject version == __init__ version (== tag)")
     version.add_argument("--expect", help="tag to match, with or without a leading v")
 
-    pypi = sub.add_parser("pypi", help="refuse a version that is already published")
-    pypi.add_argument("--version", help="version to check (default: the project version)")
-    pypi.add_argument("--timeout", type=float, default=15.0)
 
     contract = sub.add_parser("contract", help="the documented exit codes, through the CLI")
     contract.add_argument("--executable", help="interpreter to test (default: this one)")
@@ -609,7 +588,6 @@ def main(argv: list[str] | None = None) -> int:
     handler = {
         "attribution": cmd_attribution,
         "version": cmd_version,
-        "pypi": cmd_pypi,
         "contract": cmd_contract,
         "smoke": cmd_smoke,
         "noskips": cmd_noskips,
