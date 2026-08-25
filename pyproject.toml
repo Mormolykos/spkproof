@@ -1,7 +1,12 @@
 [project]
 name = "spkproof"
 version = "0.1.0"
-description = "Deterministic checks for speaker-verification studies: F0-tracking contamination and within-speaker embedding displacement."
+# This is the sentence PyPI prints under the package name, so it must describe
+# the tool rather than the paper. It used to end "...and within-speaker embedding
+# displacement", which is the subject of the study spkproof came out of and not
+# something this package measures: there is one command, `check-f0`, and no
+# displacement check exists. Caught before the first upload.
+description = "Deterministic checks for speaker-verification studies: catch F0-tracking contamination that can invert a directional result."
 authors = [{name = "Panagiotis (Panos) Gkilis", email = "bedvibe@bedvibe.studio"}]
 readme = "README.md"
 license = {text = "MIT"}
