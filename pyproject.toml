@@ -1,18 +1,19 @@
 [project]
 name = "spkproof"
-version = "0.1.0"
+version = "0.3.0"
 # This is the sentence PyPI prints under the package name, so it must describe
 # the tool rather than the paper. It used to end "...and within-speaker embedding
 # displacement", which is the subject of the study spkproof came out of and not
 # something this package measures: there is one command, `check-f0`, and no
 # displacement check exists. Caught before the first upload.
-description = "Deterministic checks for speaker-verification studies: catch F0-tracking contamination that can invert a directional result."
+description = "Deterministic checks for speaker-verification studies: F0-tracking contamination, spectral descriptors that only follow pitch, trial-list design faults, and an encoder panel with paired speaker-bootstrap intervals."
 authors = [{name = "Panagiotis (Panos) Gkilis", email = "bedvibe@bedvibe.studio"}]
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 keywords = ["speaker-verification", "speaker-embeddings", "voice-biometrics",
-            "f0", "pitch-tracking", "measurement-error", "ECAPA-TDNN", "WavLM"]
+            "f0", "pitch-tracking", "measurement-error", "ECAPA-TDNN", "WavLM",
+            "bootstrap", "multiple-comparisons", "equal-error-rate"]
 classifiers = [
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering",
@@ -64,11 +65,11 @@ ignore = ["E501"]
 testpaths = ["tests"]
 pythonpath = ["src"]
 
-# spkproof is the newest and smallest of the three proof libraries - 426 lines -
-# and `mypy --strict` reported six errors on it against 159 for trainproof. At
-# six, strict is affordable today and cheap to keep; it is turned on here and
-# deliberately not turned on in the older siblings. Strictness chosen by
-# measurement, not by consistency.
+# spkproof is the newest of the three proof libraries, and when it was 426 lines
+# `mypy --strict` reported six errors on it against 159 for trainproof. At six,
+# strict was affordable and cheap to keep; it is turned on here and deliberately
+# not turned on in the older siblings. Strictness chosen by measurement, not by
+# consistency - and kept through 0.3.0, which is now 2,478 lines and still clean.
 [tool.mypy]
 python_version = "3.10"
 files = ["src/spkproof"]
