@@ -107,6 +107,42 @@ def test_the_weighted_estimator_reproduces_the_reference_exactly():
         assert _weighted_eer(cell, [1.0], dyadic=False) == reference
 
 
+def test_the_plateau_tie_break_is_the_lower_eer_and_not_the_first_threshold():
+    """A pin, not a preference. DO NOT change this to match `integrity_pass.py`.
+
+    On discrete scores two thresholds can share the smallest |frr - far| gap:
+    one below the crossing and one above it. They are equally balanced and have
+    different error rates. spkproof takes the lower one, because that is what
+    `equal_error_rate` does and because an EER is the balanced operating point a
+    system would be run at - the worse of two equally balanced settings is not
+    the system's error rate.
+
+    The prototype these intervals were ported from takes argmin|frr - far|, the
+    FIRST minimiser, which is the lower threshold and not the better operating
+    point. The two agree exactly at unit weights, which is why that prototype's
+    own self-check against this library passed and the divergence stayed
+    invisible until it was measured under weighted draws. On the fixture below
+    the rules differ by a factor of three."""
+    gen, imp = [0.4, 0.6], [0.5, 0.5]
+
+    thresholds = sorted(set(gen) | set(imp))
+    scored = [(abs(sum(g < t for g in gen) / 2 - sum(i >= t for i in imp) / 2),
+               (sum(g < t for g in gen) / 2 + sum(i >= t for i in imp) / 2) / 2)
+              for t in thresholds]
+    smallest = min(gap for gap, _ in scored)
+    tied = [eer for gap, eer in scored if gap == smallest]
+    assert len(tied) == 2 and tied == [0.75, 0.25], "the fixture must have a plateau"
+
+    first_minimiser = tied[0]          # what argmin|frr - far| returns
+    lowest = min(tied)                 # what spkproof returns
+
+    cell = _Cell([(v, 0) for v in gen], [(v, 0, 0) for v in imp])
+    assert equal_error_rate(gen, imp) == lowest
+    assert _weighted_eer(cell, [1.0], dyadic=True) == lowest
+    assert _weighted_eer(cell, [3.0], dyadic=True) == lowest
+    assert lowest != first_minimiser
+
+
 def test_a_speaker_who_is_not_drawn_contributes_nothing_to_either_side():
     """The property the enrollment-only scheme lacks. Zero weight on a speaker
     must remove their genuine trials AND the impostor trials where they are the

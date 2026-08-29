@@ -311,7 +311,7 @@ Full write-up: <https://ai.bedvibe.studio/speaker-drift/>
 
 ```bash
 git clone https://github.com/Mormolykos/spkproof.git && cd spkproof
-pytest -q                     # 118 tests, no install needed
+pytest -q                     # 119 tests, no install needed
 pip install -e ".[dev]"       # ruff, mypy, pytest, build, twine, pyyaml
 ```
 

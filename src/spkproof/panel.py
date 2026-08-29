@@ -251,12 +251,36 @@ def _weighted_eer(cell: _Cell, weights: Sequence[float], dyadic: bool) -> float:
     distribution towards whoever happened to be drawn twice. This matches the
     implementation these intervals were validated against.
 
-    Where several thresholds share the smallest |frr - far| gap, this takes the
-    one with the lowest EER, because that is what `equal_error_rate` does and
-    the two have to be the same estimator. An implementation that takes the
-    first such threshold instead agrees exactly at unit weights and can differ
-    by a few thousandths of an EER on a weighted draw - measured at 6.3e-3
-    worst over 1,200 draws on the 11,935-trial manifest behind this module."""
+    THE PLATEAU TIE-BREAK. DO NOT "FIX" THIS TOWARDS THE OTHER REFERENCE.
+    ---------------------------------------------------------------------
+    On discrete scores no threshold makes frr equal far, so the crossing is
+    approached from both sides and TWO thresholds can share the smallest
+    |frr - far| gap: one below the crossing with frr - far = -g, one above it
+    with +g. They are equally balanced and they have different error rates.
+
+    This takes the one with the LOWER EER, which is what `equal_error_rate`
+    does, so the fast path and the reference are one estimator rather than two.
+    The prototype this was ported from (`integrity_pass.py: eer_w`) takes
+    `argmin|frr - far|`, which is the FIRST minimiser - and the first minimiser
+    is the lower threshold, not the better operating point. On
+    genuine [0.4, 0.6] against impostor [0.5, 0.5] both rules see a 0.5 gap
+    twice; this returns 0.25 and argmin returns 0.75, for the same data.
+    `test_paired.py` pins that case so nobody quietly moves this rule to match
+    the prototype.
+
+    Why the rule here is the correct one, and not merely the incumbent: an EER
+    is the balanced operating point a system would actually be run at, so when
+    two thresholds are equally balanced, the one with more error is not the
+    system's error rate - it is the worse of two available settings. Taking it
+    inflates the reported rate, and it inflates it unevenly, since which side
+    wins depends on where the weights happen to fall in a given bootstrap draw.
+
+    The two rules agree exactly at unit weights, which is why the prototype's
+    own self-check against this library passed and the divergence stayed
+    invisible. Under weighted draws it appears: 6.3e-3 worst over 1,200 draws
+    on the 11,935-trial manifest behind this module. Experiment D found the
+    same defect independently at 2.2e-4, about 28x smaller, which says the size
+    of the divergence is a property of the data and not a bound to rely on."""
     wg = [weights[s] for s in cell.g_speaker]
     if dyadic:
         wi = [weights[e] * weights[t]
